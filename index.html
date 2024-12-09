@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Med-PaLM Text Summarization</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Medical Text Summarization</h1>
+
+        <!-- Textarea for Input -->
+        <textarea id="inputText" placeholder="Enter medical text here..."></textarea>
+
+        <!-- Dropdown for Summary Length -->
+        <label for="length">
+            <i class="fas fa-ruler"></i> Summary Length:
+        </label>
+        <select id="length">
+            <option value="short">Short</option>
+            <option value="medium" selected>Medium</option>
+            <option value="detailed">Detailed</option>
+        </select>
+
+        <!-- Dropdown for Summary Style -->
+        <label for="style">
+            <i class="fas fa-paint-brush"></i> Summary Style:
+        </label>
+        <select id="style">
+            <option value="conversational" selected>Conversational</option>
+            <option value="technical">Technical</option>
+        </select>
+
+        <!-- Button to Summarize -->
+        <button onclick="summarizeText()">
+            <i class="fas fa-magic"></i> Summarize
+        </button>
+
+        <!-- Loading Spinner -->
+        <div id="loadingSpinner" style="display: none;">
+            <i class="fas fa-spinner fa-spin"></i> Generating Summary...
+        </div>
+
+        <!-- Output Section -->
+        <h2>Summary</h2>
+        <p id="outputText"></p>
+    </div>
+
+    <script>
+        async function summarizeText() {
+            const inputText = document.getElementById('inputText').value.trim();
+            const length = document.getElementById('length').value;
+            const style = document.getElementById('style').value;
+            const spinner = document.getElementById('loadingSpinner');
+            const outputText = document.getElementById('outputText');
+
+            if (!inputText) {
+                alert('Please enter some text to summarize.');
+                return;
+            }
+
+            spinner.style.display = 'block';
+            outputText.innerText = '';
+
+            try {
+                const response = await fetch('/summarize', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: inputText, length, style })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to generate summary.');
+                }
+
+                const result = await response.json();
+                outputText.innerText = result.summary;
+
+            } catch (error) {
+                outputText.innerText = `Error: ${error.message}`;
+            } finally {
+                spinner.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
